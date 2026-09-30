@@ -1,0 +1,490 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+
+:root, [data-theme="dark"] {
+  /* JURISCOPE Dark Luxury Legal Palette */
+  --bg-primary: #07090e;
+  --bg-secondary: #0d111a;
+  --bg-card: #131926;
+  --bg-card-hover: #192234;
+  --bg-card-glass: rgba(19, 25, 38, 0.85);
+  
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-gold: rgba(212, 175, 55, 0.3);
+  --border-gold-glow: rgba(212, 175, 55, 0.6);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-gold: #e5c158;
+  
+  /* Brand Accents */
+  --accent-gold: #d4af37;
+  --accent-gold-hover: #f0c946;
+  --accent-gold-bg: rgba(212, 175, 55, 0.15);
+  
+  --accent-blue: #3b82f6;
+  --accent-blue-bg: rgba(59, 130, 246, 0.15);
+  
+  --accent-emerald: #10b981;
+  --accent-emerald-bg: rgba(16, 185, 129, 0.15);
+  
+  --accent-amber: #f59e0b;
+  --accent-amber-bg: rgba(245, 158, 11, 0.15);
+  
+  --accent-rose: #f43f5e;
+  --accent-rose-bg: rgba(244, 63, 94, 0.15);
+  
+  --accent-purple: #8b5cf6;
+  --accent-purple-bg: rgba(139, 92, 246, 0.15);
+
+  /* Gradients */
+  --gradient-gold: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #b8973e 100%);
+  --gradient-gold-subtle: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(184, 151, 62, 0.05) 100%);
+  --gradient-glow: radial-gradient(circle at 50% -20%, rgba(212, 175, 55, 0.15) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 80%);
+
+  /* 3D Shadows & Perspective */
+  --shadow-3d-card: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --shadow-3d-gold: 0 15px 35px -5px rgba(212, 175, 55, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="light"] {
+  /* JURISCOPE Crisp Luxury Light Palette */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-card-glass: rgba(255, 255, 255, 0.92);
+  
+  --border-color: rgba(15, 23, 42, 0.12);
+  --border-gold: rgba(184, 134, 11, 0.4);
+  --border-gold-glow: rgba(184, 134, 11, 0.7);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-gold: #b8860b;
+  
+  --accent-gold: #b8860b;
+  --accent-gold-hover: #d4af37;
+  --accent-gold-bg: rgba(184, 134, 11, 0.12);
+  
+  --accent-blue: #2563eb;
+  --accent-blue-bg: rgba(37, 99, 235, 0.1);
+  
+  --accent-emerald: #059669;
+  --accent-emerald-bg: rgba(5, 150, 105, 0.1);
+  
+  --accent-amber: #d97706;
+  --accent-amber-bg: rgba(217, 119, 6, 0.1);
+  
+  --accent-rose: #e11d48;
+  --accent-rose-bg: rgba(225, 29, 72, 0.1);
+  
+  --accent-purple: #7c3aed;
+  --accent-purple-bg: rgba(124, 58, 237, 0.1);
+
+  /* Light Mode Gradients & Shadows */
+  --gradient-gold: linear-gradient(135deg, #b8860b 0%, #d4af37 50%, #8b6508 100%);
+  --gradient-gold-subtle: linear-gradient(135deg, rgba(184, 134, 11, 0.1) 0%, rgba(212, 175, 55, 0.04) 100%);
+  --gradient-glow: radial-gradient(circle at 50% -20%, rgba(184, 134, 11, 0.08) 0%, rgba(37, 99, 235, 0.04) 50%, transparent 80%);
+
+  --shadow-3d-card: 0 15px 35px -5px rgba(15, 23, 42, 0.08), 0 0 15px rgba(184, 134, 11, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --shadow-3d-gold: 0 12px 25px -3px rgba(184, 134, 11, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  perspective: 1200px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.serif-title {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-gold);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+/* Structural Layout */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+  background: var(--gradient-glow);
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-left: 260px;
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+.page-wrapper {
+  padding: 2rem 2.5rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Glassmorphic 3D Cards */
+.card-glass {
+  background: var(--bg-card-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: var(--shadow-3d-card);
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.card-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  transition: left 0.75s ease;
+  pointer-events: none;
+}
+
+.card-glass:hover {
+  border-color: var(--border-gold-glow);
+  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-6px) translateZ(12px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3), 0 0 30px rgba(184, 134, 11, 0.15);
+}
+
+.card-glass:hover::before {
+  left: 100%;
+}
+
+/* 3D Gold Extruded Border Card */
+.card-gold-border {
+  border: 1px solid var(--border-gold);
+  background: var(--gradient-gold-subtle);
+  box-shadow: var(--shadow-3d-card);
+}
+
+.card-3d-elevated {
+  transform: perspective(1000px) translateZ(20px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 30px rgba(184, 134, 11, 0.15);
+}
+
+/* Floating 3D Icon Badge */
+.icon-3d {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.card-glass:hover .icon-3d {
+  transform: scale(1.12) translateZ(15px) rotate(-3deg);
+  box-shadow: 0 10px 22px rgba(184, 134, 11, 0.3);
+}
+
+/* Theme Switcher Toggle Pill */
+.theme-toggle-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--border-gold);
+  color: var(--text-gold);
+  transform: scale(1.05);
+}
+
+/* 3D Extruded Gold Buttons */
+.btn-gold {
+  background: var(--gradient-gold);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.7rem 1.4rem;
+  border-radius: 0.6rem;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: var(--shadow-3d-gold);
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+[data-theme="dark"] .btn-gold {
+  color: #07090e;
+}
+
+.btn-gold:hover {
+  transform: translateY(-3px) translateZ(10px);
+  box-shadow: 0 18px 35px -5px rgba(184, 134, 11, 0.4);
+  filter: brightness(1.08);
+}
+
+.btn-gold:active {
+  transform: translateY(1px) translateZ(2px);
+  box-shadow: 0 5px 15px rgba(184, 134, 11, 0.3);
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.65rem 1.3rem;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-gold);
+  color: var(--text-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(184, 134, 11, 0.15);
+}
+
+/* Badges with 3D Glow */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.badge:hover {
+  transform: scale(1.05);
+}
+
+.badge-gold {
+  background: var(--accent-gold-bg);
+  color: var(--text-gold);
+  border: 1px solid var(--border-gold);
+}
+
+.badge-success {
+  background: var(--accent-emerald-bg);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-warning {
+  background: var(--accent-amber-bg);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-danger {
+  background: var(--accent-rose-bg);
+  color: var(--accent-rose);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.badge-info {
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-purple {
+  background: var(--accent-purple-bg);
+  color: var(--accent-purple);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* 3D Floating Node Sphere for Knowledge Graph */
+.node-sphere-3d {
+  position: relative;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(212, 175, 55, 0.8) 60%, rgba(0, 0, 0, 0.8) 100%);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px currentColor;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.node-sphere-3d:hover {
+  transform: scale(1.25) translateZ(20px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 25px currentColor;
+}
+
+/* Input Fields */
+.input-legal {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.6rem;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.input-legal:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.2);
+}
+
+/* Skeleton Loading Shimmer */
+.skeleton {
+  background: linear-gradient(90deg, rgba(200,200,200,0.08) 25%, rgba(200,200,200,0.18) 50%, rgba(200,200,200,0.08) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Clean Legal Data Tables */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-3d-card);
+}
+
+.legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.legal-table th {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.legal-table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.legal-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.legal-table tbody tr:hover {
+  background: var(--accent-gold-bg);
+  transform: scale(1.005) translateZ(4px);
+}
+
+/* Empty State Box */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  border: 1px dashed var(--border-color);
+  border-radius: 1rem;
+  background: var(--bg-card-glass);
+  box-shadow: var(--shadow-3d-card);
+}
+
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.25rem;
+  color: var(--accent-gold);
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-gold-bg);
+  border-radius: 50%;
+  box-shadow: 0 10px 25px rgba(184, 134, 11, 0.25);
+  transform: perspective(500px) translateZ(10px);
+}
