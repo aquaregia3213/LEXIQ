@@ -11,20 +11,33 @@ Base = declarative_base()
 # Configure SQLAlchemy engine (lazy setup with fallback)
 def create_app_engine(database_url: str = None):
     url = database_url or settings.normalized_database_url
+    if not url:
+        return None
     try:
         if url.startswith("postgresql"):
-            return create_engine(
-                url,
-                pool_pre_ping=True,
-                connect_args={"connect_timeout": 5}
-            )
+            try:
+                return create_engine(
+                    url,
+                    pool_pre_ping=True,
+                    connect_args={"connect_timeout": 5}
+                )
+            except Exception as inner_err:
+                # If default driver (psycopg 3) is missing, attempt fallback to psycopg2
+                if "psycopg" in str(inner_err).lower() and "postgresql://" in url:
+                    fallback_url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+                    return create_engine(
+                        fallback_url,
+                        pool_pre_ping=True,
+                        connect_args={"connect_timeout": 5}
+                    )
+                raise inner_err
         else:
             return create_engine(
                 url,
                 connect_args={"check_same_thread": False} if "sqlite" in url else {}
             )
     except Exception as e:
-        logger.warning(f"Failed to initialize database engine for {url}: {e}")
+        logger.warning(f"Failed to initialize database engine: {e}")
         return None
 
 
