@@ -9,6 +9,7 @@ from backend.app.agents.tools.risk_tool import GetRisksTool, AnalyzeRiskTool
 from backend.app.agents.tools.graph_tool import QueryKnowledgeGraphTool
 from backend.app.agents.tools.source_tool import RetrieveSourceTool
 from backend.app.agents.tools.comparison_tool import CompareContractsTool
+from backend.app.agents.tools.ecourts_tool import ECourtsCaseLookupTool
 
 
 def get_all_tools() -> Dict[str, BaseTool]:
@@ -23,7 +24,8 @@ def get_all_tools() -> Dict[str, BaseTool]:
         AnalyzeRiskTool(),
         QueryKnowledgeGraphTool(),
         RetrieveSourceTool(),
-        CompareContractsTool()
+        CompareContractsTool(),
+        ECourtsCaseLookupTool()
     ]
     return {t.name: t for t in tools}
 
@@ -40,5 +42,6 @@ __all__ = [
     "QueryKnowledgeGraphTool",
     "RetrieveSourceTool",
     "CompareContractsTool",
+    "ECourtsCaseLookupTool",
     "get_all_tools"
 ]

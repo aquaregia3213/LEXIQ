@@ -77,14 +77,40 @@ class DeterministicEmbeddingProvider(BaseEmbeddingProvider):
         return [self.embed_text(t) for t in texts]
 
 
+def create_default_embedding_provider() -> BaseEmbeddingProvider:
+    """Factory resolving the active embedding provider from settings."""
+    from backend.app.config import settings
+    active = settings.active_ai_provider
+    if active == "gemini":
+        from backend.app.services.gemini_service import GeminiEmbeddingProvider
+        return GeminiEmbeddingProvider()
+    elif active == "deterministic":
+        return DeterministicEmbeddingProvider()
+    else:
+        if settings.GEMINI_API_KEY:
+            from backend.app.services.gemini_service import GeminiEmbeddingProvider
+            return GeminiEmbeddingProvider()
+        return DeterministicEmbeddingProvider()
+
+
 class EmbeddingService:
     """
     Service wrapper managing application embedding generation.
-    Supports switching providers dynamically.
+    Supports switching providers dynamically based on settings.
     """
 
-    def __init__(self, provider: BaseEmbeddingProvider = None):
-        self.provider = provider or DeterministicEmbeddingProvider()
+    def __init__(self, provider: Optional[BaseEmbeddingProvider] = None):
+        self._custom_provider = provider
+
+    @property
+    def provider(self) -> BaseEmbeddingProvider:
+        if self._custom_provider is not None:
+            return self._custom_provider
+        return create_default_embedding_provider()
+
+    @provider.setter
+    def provider(self, new_provider: BaseEmbeddingProvider):
+        self._custom_provider = new_provider
 
     def get_dimension(self) -> int:
         return self.provider.dimension
@@ -103,3 +129,4 @@ _default_service = EmbeddingService()
 def get_embedding_service() -> EmbeddingService:
     """Return configured EmbeddingService instance."""
     return _default_service
+

@@ -1,0 +1,42 @@
+services:
+  # Langflow Visual Workflow Orchestration Service
+  langflow:
+    image: langflowai/langflow:latest
+    container_name: lexiq-langflow
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    environment:
+      - LANGFLOW_PORT=7860
+      - LANGFLOW_HOST=0.0.0.0
+      - LANGFLOW_AUTO_SAVING=true
+    volumes:
+      - langflow-data:/app/data
+      # Mount reproducible flows directly into container
+      - ./flows:/app/flows:ro
+    networks:
+      - lexiq-network
+
+  # PostgreSQL with pgvector for contract vector storage
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: lexiq-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-legal_ai_db}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - lexiq-network
+
+volumes:
+  langflow-data:
+  postgres-data:
+
+networks:
+  lexiq-network:
+    driver: bridge

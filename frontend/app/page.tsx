@@ -18,6 +18,7 @@ import { EntityView } from '../components/views/EntityView';
 import { RiskAnalysisView } from '../components/views/RiskAnalysisView';
 import { SourceEvidenceView } from '../components/views/SourceEvidenceView';
 import { AgentView } from '../components/views/AgentView';
+import { ECourtsView } from '../components/views/ECourtsView';
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -124,6 +125,10 @@ export default function Home() {
         return { title: 'Risk Intelligence & Flags', subtitle: 'Automated contract risk detection and evidence' };
       case 'evidence':
         return { title: 'Source & Evidence Inspector', subtitle: 'Inspect raw chunk text and page grounding offsets' };
+      case 'ecourts':
+        return { title: 'Indian eCourts Case Intelligence', subtitle: 'CNR validation, official portal search coordinates, and AI procedural risk analysis' };
+      default:
+        return { title: 'Legal Intelligence Platform', subtitle: 'Autonomous contract and court intelligence platform' };
     }
   };
 
@@ -225,6 +230,11 @@ export default function Home() {
               onSelectContract={(id) => setSelectedContractId(id)}
               onOpenEvidence={(data) => setModalEvidence(data)}
             />
+          )}
+
+          {/* Screen: Indian eCourts Intelligence */}
+          {currentView === 'ecourts' && (
+            <ECourtsView />
           )}
 
           {/* Screen 5: Semantic Search */}

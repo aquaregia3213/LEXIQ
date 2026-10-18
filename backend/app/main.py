@@ -22,12 +22,49 @@ from backend.app.database import init_db
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s"
 )
 logger = logging.getLogger("legal_ai")
 
 # Initialize database tables
 init_db()
+
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Execute startup diagnostics, validate configuration, and log structured operational parameters."""
+    from backend.app.database import check_db_connection
+    from ingestion.pipeline.ingestor import ensure_upload_dir
+
+    logger.info("=" * 60)
+    logger.info("Starting LEXIQ Legal Contract Intelligence API")
+    logger.info(f"Environment: {settings.ENVIRONMENT}")
+    logger.info(f"Active AI Provider: {settings.active_ai_provider}")
+    logger.info(f"LLM Model: {settings.GEMINI_MODEL if settings.active_ai_provider == 'gemini' else 'deterministic'}")
+    logger.info(f"Embedding Model: {settings.GEMINI_EMBEDDING_MODEL if settings.active_ai_provider == 'gemini' else 'deterministic'}")
+    logger.info(f"Embedding Dimension: {settings.embedding_dimension}")
+    logger.info(f"Agent Orchestrator: {settings.AGENT_ORCHESTRATOR}")
+    logger.info(f"Gemini API Key: {settings.mask_credential(settings.GEMINI_API_KEY)}")
+
+    # Database connectivity check
+    db_status = check_db_connection()
+    logger.info(f"Database Connection: {db_status.get('status')} (Dialect: {db_status.get('dialect')})")
+
+    if settings.ENVIRONMENT == "production":
+        if "sqlite" in settings.normalized_database_url.lower():
+            logger.critical("PRODUCTION WARNING: SQLite is active in production environment. A managed PostgreSQL database with pgvector is strongly recommended.")
+        if settings.active_ai_provider == "gemini" and not settings.GEMINI_API_KEY:
+            logger.error("PRODUCTION CONFIGURATION ERROR: GEMINI_API_KEY is missing while AI_PROVIDER=gemini.")
+
+    # Storage check
+    upload_path = ensure_upload_dir()
+    logger.info(f"Persistent Upload Directory: {upload_path}")
+    logger.info(f"Configured Allowed CORS Origins: {settings.cors_origins_list}")
+    logger.info("=" * 60)
+
+    yield
+
 
 # Initialize FastAPI application with comprehensive OpenAPI metadata
 app = FastAPI(
@@ -44,11 +81,14 @@ Enterprise AI-powered Legal Tech platform REST API for contract intelligence.
 * **Obligations**: Contractual commitments, responsible parties, and temporal deadlines.
 * **Risk Analysis**: AI-assisted risk detection (liability, indemnification, renewal, termination, IP) with safety disclaimers.
 * **Knowledge Graph**: Subgraph generation and multi-hop traversal queries for company and jurisdiction relations.
+* **Agentic AI**: Autonomous ReAct and Langflow multi-step contract investigation with verifiable source citations.
+* **eCourts**: Indian case status coordinates, CNR validation, and procedural risk analysis.
     """,
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
+    lifespan=lifespan
 )
 
 # Configure CORS middleware with environment-driven origins
@@ -152,6 +192,27 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 
+# Custom Exception Handler: GeminiProviderError
+from backend.app.services.gemini_service import GeminiProviderError
+
+@app.exception_handler(GeminiProviderError)
+async def gemini_provider_exception_handler(request: Request, exc: GeminiProviderError):
+    """Transparently return Gemini AI provider errors without fake silent answers."""
+    logger.error(f"Gemini provider error on {request.method} {request.url.path}: {exc.message}")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.message,
+            "error": {
+                "code": "AI_PROVIDER_ERROR",
+                "message": exc.message,
+                "provider": "google-gemini",
+                "model": settings.GEMINI_MODEL
+            }
+        }
+    )
+
+
 # Mount v1 REST API Router
 app.include_router(v1_router)
 
@@ -168,7 +229,7 @@ app.include_router(legacy_risks_router)
 
 @app.get("/health", tags=["Health"], summary="Root health endpoint")
 def root_health():
-    """Convenience root health endpoint."""
+    """Convenience root health endpoint with AI provider status."""
     from backend.app.database import check_db_connection
     from datetime import datetime, timezone
     return {
@@ -177,7 +238,14 @@ def root_health():
         "version": "1.0.0",
         "environment": settings.ENVIRONMENT,
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "database": check_db_connection()
+        "database": check_db_connection(),
+        "ai_provider": {
+            "provider": settings.active_ai_provider,
+            "llm_model": settings.GEMINI_MODEL if settings.active_ai_provider == "gemini" else "deterministic",
+            "embedding_model": settings.GEMINI_EMBEDDING_MODEL if settings.active_ai_provider == "gemini" else "deterministic",
+            "embedding_dimension": settings.embedding_dimension,
+            "is_configured": bool(settings.GEMINI_API_KEY) if settings.active_ai_provider == "gemini" else True
+        }
     }
 
 
@@ -189,9 +257,13 @@ def root():
 
 if __name__ == "__main__":
     import uvicorn
+    import os
+    port = int(os.environ.get("PORT", settings.PORT))
+    host = os.environ.get("HOST", "0.0.0.0")
+    reload = settings.ENVIRONMENT != "production"
     uvicorn.run(
         "backend.app.main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=True
+        host=host,
+        port=port,
+        reload=reload
     )

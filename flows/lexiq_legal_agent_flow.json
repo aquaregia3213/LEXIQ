@@ -1,0 +1,168 @@
+{
+  "name": "LEXIQ Legal Contract Intelligence Agent",
+  "description": "Evidence-grounded contract analysis workflow powered by Langflow, Google Gemini, and authenticated LEXIQ backend data services.",
+  "data": {
+    "nodes": [
+      {
+        "id": "chat_input_node",
+        "type": "ChatInput",
+        "position": { "x": 100, "y": 200 },
+        "data": {
+          "node": {
+            "template": {
+              "input_value": {
+                "type": "str",
+                "value": "What are the termination conditions and notice periods in this agreement?",
+                "name": "input_value",
+                "display_name": "Legal Question",
+                "info": "The contract query or analysis request."
+              },
+              "should_store_message": {
+                "type": "bool",
+                "value": true,
+                "name": "should_store_message"
+              }
+            },
+            "description": "Receives legal inquiry and permitted contract context.",
+            "display_name": "Contract Query Input"
+          }
+        }
+      },
+      {
+        "id": "lexiq_tool_node",
+        "type": "CustomComponent",
+        "position": { "x": 450, "y": 200 },
+        "data": {
+          "node": {
+            "template": {
+              "lexiq_api_url": {
+                "type": "str",
+                "value": "http://localhost:8000",
+                "display_name": "LEXIQ API Base URL"
+              },
+              "internal_api_key": {
+                "type": "str",
+                "value": "lexiq_internal_secret_token",
+                "display_name": "Internal API Key"
+              },
+              "tool_name": {
+                "type": "str",
+                "value": "search_contract",
+                "display_name": "Tool Name"
+              },
+              "contract_id": {
+                "type": "str",
+                "value": "",
+                "display_name": "Contract ID"
+              },
+              "query_or_args": {
+                "type": "str",
+                "value": "",
+                "display_name": "Query or Args"
+              }
+            },
+            "description": "Calls authenticated LEXIQ backend tools to retrieve grounded contract passages and clause data.",
+            "display_name": "LEXIQ Legal Tool Caller"
+          }
+        }
+      },
+      {
+        "id": "prompt_template_node",
+        "type": "Prompt",
+        "position": { "x": 800, "y": 200 },
+        "data": {
+          "node": {
+            "template": {
+              "template": {
+                "type": "str",
+                "value": "You are LEXIQ's Agentic AI Legal Intelligence Assistant.\n\nCONTRACT CONTEXT & RETRIEVED EVIDENCE:\n{retrieved_evidence}\n\nUSER QUESTION:\n{user_question}\n\nINSTRUCTIONS:\n1. Base your answer strictly on the provided contract evidence. If evidence is insufficient, explicitly state so.\n2. Include specific clause and page references.\n3. Return a structured JSON response with the following keys:\n{\n  \"answer\": \"Detailed analytical answer with citations\",\n  \"summary\": \"Executive summary\",\n  \"findings\": [{\"category\": \"clause\", \"fact\": \"...\", \"page_number\": 1}],\n  \"sources\": [{\"source_location\": \"Section 12.1\", \"snippet\": \"...\"}],\n  \"confidence\": \"HIGH\" | \"MEDIUM\" | \"LOW\",\n  \"limitations\": [\"Noted caveats or missing context\"]\n}",
+                "display_name": "Template"
+              }
+            },
+            "description": "Legal synthesis prompt instructing strict grounding and citation schema.",
+            "display_name": "Legal Synthesis Prompt"
+          }
+        }
+      },
+      {
+        "id": "gemini_model_node",
+        "type": "GoogleGenerativeAIModel",
+        "position": { "x": 1150, "y": 200 },
+        "data": {
+          "node": {
+            "template": {
+              "model_name": {
+                "type": "str",
+                "value": "gemini-2.5-flash",
+                "display_name": "Model Name"
+              },
+              "temperature": {
+                "type": "float",
+                "value": 0.1,
+                "display_name": "Temperature"
+              },
+              "google_api_key": {
+                "type": "str",
+                "value": "",
+                "display_name": "Google API Key (or loaded from environment)"
+              }
+            },
+            "description": "Google Gemini multimodal LLM for legal reasoning and synthesis.",
+            "display_name": "Google Gemini 2.5 Flash"
+          }
+        }
+      },
+      {
+        "id": "chat_output_node",
+        "type": "ChatOutput",
+        "position": { "x": 1500, "y": 200 },
+        "data": {
+          "node": {
+            "template": {
+              "input_value": {
+                "type": "str",
+                "value": "",
+                "display_name": "Response Message"
+              }
+            },
+            "description": "Returns structured legal intelligence response to the FastAPI backend.",
+            "display_name": "Structured Agent Output"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "source": "chat_input_node",
+        "sourceHandle": "message",
+        "target": "lexiq_tool_node",
+        "targetHandle": "query_or_args"
+      },
+      {
+        "source": "chat_input_node",
+        "sourceHandle": "message",
+        "target": "prompt_template_node",
+        "targetHandle": "user_question"
+      },
+      {
+        "source": "lexiq_tool_node",
+        "sourceHandle": "summary_for_agent",
+        "target": "prompt_template_node",
+        "targetHandle": "retrieved_evidence"
+      },
+      {
+        "source": "prompt_template_node",
+        "sourceHandle": "prompt",
+        "target": "gemini_model_node",
+        "targetHandle": "messages"
+      },
+      {
+        "source": "gemini_model_node",
+        "sourceHandle": "text",
+        "target": "chat_output_node",
+        "targetHandle": "input_value"
+      }
+    ],
+    "viewport": { "x": 0, "y": 0, "zoom": 1 }
+  }
+}

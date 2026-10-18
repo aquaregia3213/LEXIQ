@@ -490,18 +490,46 @@ class AgentOrchestrator:
                 ))
 
         # 3. Synthesize comprehensive grounded answer
-        answer_parts = []
-        for src in sources[:4]:
-            answer_parts.append(
-                f"According to {src.contract_name} ({src.source_location}): \"{src.snippet}\""
-            )
+        from backend.app.config import settings
+        from backend.app.services.llm import get_llm_service
 
-        final_answer = "\n\n".join(answer_parts)
+        final_answer = None
+        if settings.active_ai_provider == "gemini" and settings.GEMINI_API_KEY:
+            try:
+                evidence_payload = [
+                    {
+                        "chunk_id": s.chunk_id or f"ev-{i}",
+                        "contract_name": s.contract_name,
+                        "section": s.section,
+                        "page_start": s.page_number,
+                        "page_end": s.page_number,
+                        "text": s.snippet
+                    }
+                    for i, s in enumerate(sources)
+                ]
+                gemini_res = get_llm_service().generate_grounded_answer(
+                    question=state.question,
+                    evidence_chunks=evidence_payload
+                )
+                final_answer = gemini_res.get("answer")
+            except Exception as e:
+                logger.error(f"Gemini agent synthesis failed: {e}")
+                raise
+
         if not final_answer:
-            final_answer = INSUFFICIENT_EVIDENCE_MESSAGE
+            answer_parts = []
+            for src in sources[:4]:
+                answer_parts.append(
+                    f"According to {src.contract_name} ({src.source_location}): \"{src.snippet}\""
+                )
 
-        # Add mandatory legal safety disclaimer
-        final_answer += f"\n\n---\n{LEGAL_DISCLAIMER_TEXT}"
+            final_answer = "\n\n".join(answer_parts)
+            if not final_answer:
+                final_answer = INSUFFICIENT_EVIDENCE_MESSAGE
+
+            # Add mandatory legal safety disclaimer
+            final_answer += f"\n\n---\n{LEGAL_DISCLAIMER_TEXT}"
+
 
         # 4. Synthesize summary
         primary_source = sources[0] if sources else None

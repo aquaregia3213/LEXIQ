@@ -11,14 +11,27 @@ from ingestion.parsers.docx_parser import parse_docx_document, DOCXParsingError
 from ingestion.chunking.chunker import chunk_document_pages
 from backend.app.services.embedding import get_embedding_service
 
+from pathlib import Path
+from backend.app.config import settings
+
 logger = logging.getLogger(__name__)
 
-UPLOAD_DIR = os.path.join(os.getcwd(), "uploads", "contracts")
+
+def get_upload_dir() -> str:
+    """Return configured upload destination directory path (resolving absolute or relative paths)."""
+    cfg_dir = settings.UPLOAD_DIR or "uploads/contracts"
+    path = Path(cfg_dir)
+    if not path.is_absolute():
+        project_root = Path(__file__).resolve().parent.parent.parent
+        path = project_root / cfg_dir
+    return str(path)
 
 
-def ensure_upload_dir():
-    """Ensure destination upload directory exists."""
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
+def ensure_upload_dir() -> str:
+    """Ensure destination upload directory exists and return directory path."""
+    dest = get_upload_dir()
+    os.makedirs(dest, exist_ok=True)
+    return dest
 
 
 def process_contract_ingestion(
@@ -32,13 +45,13 @@ def process_contract_ingestion(
     Execute full ingestion pipeline for an uploaded contract document.
     Saves file, creates DB records, parses PDF/DOCX, chunks text, and updates processing status.
     """
-    ensure_upload_dir()
+    upload_dir = ensure_upload_dir()
 
     # 1. Generate unique file path and save raw file
     file_uuid = str(uuid.uuid4())
     _, ext = os.path.splitext(original_filename.lower())
     saved_filename = f"{file_uuid}{ext}"
-    saved_file_path = os.path.join(UPLOAD_DIR, saved_filename)
+    saved_file_path = os.path.join(upload_dir, saved_filename)
 
     with open(saved_file_path, "wb") as f:
         f.write(file_bytes)

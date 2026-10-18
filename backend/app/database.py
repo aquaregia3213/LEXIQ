@@ -10,13 +10,13 @@ Base = declarative_base()
 
 # Configure SQLAlchemy engine (lazy setup with fallback)
 def create_app_engine(database_url: str = None):
-    url = database_url or settings.DATABASE_URL
+    url = database_url or settings.normalized_database_url
     try:
         if url.startswith("postgresql"):
             return create_engine(
                 url,
                 pool_pre_ping=True,
-                connect_args={"connect_timeout": 3}
+                connect_args={"connect_timeout": 5}
             )
         else:
             return create_engine(
@@ -44,22 +44,46 @@ def init_db(target_engine=None):
         # Import models so Base.metadata collects all table definitions
         import backend.app.models.models  # noqa: F401
         
-        # If PostgreSQL, enable pgvector extension
+        # If PostgreSQL, enable pgvector extension and verify vector dimensionality
         if db_engine.dialect.name == "postgresql":
             with db_engine.connect() as conn:
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+                
+                # Check if chunks table already exists with mismatched vector dimension
+                target_dim = settings.embedding_dimension
+                check_dim_sql = text("""
+                    SELECT atttypmod
+                    FROM pg_attribute
+                    JOIN pg_class ON pg_attribute.attrelid = pg_class.oid
+                    JOIN pg_namespace ON pg_class.relnamespace = pg_namespace.oid
+                    WHERE pg_class.relname = 'chunks'
+                      AND pg_attribute.attname = 'embedding'
+                      AND pg_namespace.nspname = 'public';
+                """)
+                existing_dim = conn.execute(check_dim_sql).scalar()
+                if existing_dim is not None and existing_dim > 0 and existing_dim != target_dim:
+                    logger.info(
+                        f"PostgreSQL pgvector: migrating 'chunks.embedding' dimension from {existing_dim} to {target_dim}."
+                    )
+                    conn.execute(text(f"ALTER TABLE chunks ALTER COLUMN embedding TYPE vector({target_dim}) USING NULL;"))
+                
                 conn.commit()
-                logger.info("Successfully enabled pgvector extension in PostgreSQL.")
+                logger.info("Successfully checked pgvector extension and schema in PostgreSQL.")
         
         Base.metadata.create_all(bind=db_engine)
         logger.info("All database tables created successfully.")
         return True
     except Exception as err:
-        logger.warning(f"Primary database connection failed: {err}")
-        # Fall back to local SQLite if PostgreSQL is unreachable in local environment
+        logger.error(f"Primary database connection/initialization failed: {err}")
+        # In production, NEVER silently fall back to an ephemeral SQLite database
+        if settings.ENVIRONMENT == "production":
+            logger.critical("PRODUCTION ERROR: PostgreSQL database is required. Refusing silent fallback to SQLite.")
+            raise RuntimeError(f"Production database connection failed: {err}") from err
+
+        # Fall back to local SQLite only in development or test environments
         if db_engine.dialect.name == "postgresql" and target_engine is None:
             try:
-                logger.info("Falling back to local SQLite database ('legal_ai.db')...")
+                logger.info("Development environment: falling back to local SQLite database ('legal_ai.db')...")
                 fallback_url = "sqlite:///legal_ai.db"
                 engine = create_app_engine(fallback_url)
                 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -102,3 +126,19 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+if __name__ == "__main__":
+    import sys
+    print("==================================================")
+    print("LEXIQ Database Schema & Migration Runner")
+    print(f"Target Database Dialect: {'postgresql' if 'postgres' in settings.normalized_database_url else 'sqlite'}")
+    print(f"Vector Dimension: {settings.embedding_dimension}")
+    print("==================================================")
+    success = init_db()
+    if success:
+        print("[SUCCESS] Database schema initialized and ready for production.")
+        sys.exit(0)
+    else:
+        print("[ERROR] Database initialization failed.")
+        sys.exit(1)

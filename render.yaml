@@ -1,0 +1,46 @@
+# =========================================================================
+# Render Infrastructure Blueprint for LEXIQ
+# Deploys Managed PostgreSQL and FastAPI Backend Web Service
+# =========================================================================
+
+services:
+  # FastAPI Production Web Service
+  - type: web
+    name: lexiq-backend
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python database/init_db.py"
+    startCommand: "gunicorn -w 2 -k uvicorn.workers.UvicornWorker backend.app.main:app -b 0.0.0.0:$PORT"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lexiq-postgres
+          property: connectionString
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_EMBEDDING_MODEL
+        value: gemini-embedding-001
+      - key: GEMINI_API_KEY
+        sync: false # Set manually in Render dashboard
+      - key: AGENT_ORCHESTRATOR
+        value: native
+      - key: CORS_ORIGINS
+        sync: false # Set to your Vercel URL, e.g. https://lexiq.vercel.app
+      - key: LEXIQ_INTERNAL_API_KEY
+        generateValue: true
+
+databases:
+  # Managed PostgreSQL with pgvector support
+  - name: lexiq-postgres
+    region: oregon
+    plan: free
+    databaseName: legal_ai_db
+    user: lexiq_admin
+    postgresMajorVersion: 16

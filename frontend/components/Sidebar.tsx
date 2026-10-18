@@ -8,6 +8,7 @@ export type ViewType =
   | 'contracts'
   | 'details'
   | 'agent'
+  | 'ecourts'
   | 'search'
   | 'rag'
   | 'clauses'
@@ -35,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems: { id: ViewType; label: string; icon: string; badge?: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: '⚡' },
     { id: 'agent', label: 'AI Analyst', icon: '🤖', badge: 'Agent' },
+    { id: 'ecourts', label: 'eCourts India', icon: '⚖️', badge: 'Official' },
     { id: 'upload', label: 'Contract Upload', icon: '📤' },
     { id: 'contracts', label: 'Contract Repository', icon: '📁', badge: totalContractsCount > 0 ? String(totalContractsCount) : undefined },
     { id: 'search', label: 'Semantic Search', icon: '🔍' },

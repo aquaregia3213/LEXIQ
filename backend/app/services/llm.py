@@ -131,11 +131,37 @@ class DeterministicLLMProvider(BaseLLMProvider):
         }
 
 
+def create_default_llm_provider() -> BaseLLMProvider:
+    """Factory resolving the active LLM provider from settings."""
+    from backend.app.config import settings
+    active = settings.active_ai_provider
+    if active == "gemini":
+        from backend.app.services.gemini_service import GeminiLLMProvider
+        return GeminiLLMProvider()
+    elif active == "deterministic":
+        return DeterministicLLMProvider()
+    else:
+        if settings.GEMINI_API_KEY:
+            from backend.app.services.gemini_service import GeminiLLMProvider
+            return GeminiLLMProvider()
+        return DeterministicLLMProvider()
+
+
 class LLMService:
     """Service wrapper managing application LLM provider operations."""
 
     def __init__(self, provider: Optional[BaseLLMProvider] = None):
-        self.provider = provider or DeterministicLLMProvider()
+        self._custom_provider = provider
+
+    @property
+    def provider(self) -> BaseLLMProvider:
+        if self._custom_provider is not None:
+            return self._custom_provider
+        return create_default_llm_provider()
+
+    @provider.setter
+    def provider(self, new_provider: BaseLLMProvider):
+        self._custom_provider = new_provider
 
     def generate(self, prompt: str) -> str:
         return self.provider.generate(prompt)
@@ -154,3 +180,4 @@ _default_llm_service = LLMService()
 def get_llm_service() -> LLMService:
     """Return default LLMService instance."""
     return _default_llm_service
+

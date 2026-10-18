@@ -156,10 +156,11 @@ class Chunk(Base):
     page_end = Column(Integer, default=1)
     metadata_json = Column(JSON, nullable=True)
     
-    # pgvector embedding (1536 dimensions default for OpenAI text-embedding-3-small)
+    # pgvector embedding (configurable dimensionality matching active provider: 768 for Gemini, 1536 for deterministic/OpenAI)
     # Uses JSON column fallback for SQLite environments
+    from backend.app.config import settings
     embedding = Column(
-        Vector(1536).with_variant(JSON, "sqlite"),
+        Vector(settings.embedding_dimension).with_variant(JSON, "sqlite"),
         nullable=True
     )
     

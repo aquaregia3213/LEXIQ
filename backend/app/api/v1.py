@@ -10,6 +10,7 @@ from backend.app.api.routes.risks import router as risks_router
 from backend.app.api.routes.graph import router as graph_router
 from backend.app.api.routes.health import router as health_router
 from backend.app.api.routes.agent import router as agent_router
+from backend.app.api.routes.ecourts import router as ecourts_router
 
 v1_router = APIRouter(prefix="/api/v1")
 
@@ -24,3 +25,4 @@ v1_router.include_router(obligations_router)
 v1_router.include_router(risks_router)
 v1_router.include_router(graph_router)
 v1_router.include_router(agent_router)
+v1_router.include_router(ecourts_router)
