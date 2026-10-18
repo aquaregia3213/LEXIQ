@@ -249,6 +249,31 @@ def root_health():
     }
 
 
+@app.get("/health/ready", tags=["Health"], summary="Root readiness endpoint")
+def root_health_ready():
+    """Convenience root readiness endpoint verifying database connectivity."""
+    from backend.app.database import check_db_connection
+    from datetime import datetime, timezone
+    db_info = check_db_connection()
+    is_ready = db_info.get("status") == "connected"
+    status_code = status.HTTP_200_OK if is_ready else status.HTTP_503_SERVICE_UNAVAILABLE
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "status": "ready" if is_ready else "not_ready",
+            "database": db_info,
+            "ai_provider_configured": bool(settings.GEMINI_API_KEY) if settings.active_ai_provider == "gemini" else True,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    )
+
+
+@app.get("/health/config", tags=["Health"], summary="Safe configuration summary")
+def root_health_config():
+    """Returns safe, non-sensitive operational configuration flags."""
+    return settings.get_sanitized_config_summary()
+
+
 @app.get("/", include_in_schema=False)
 def root():
     """Root route redirecting to interactive Swagger API documentation."""
