@@ -63,7 +63,8 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads/contracts"
 
     # CORS Configuration
-    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173"
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,https://lexiq-8m2v.vercel.app"
+    ALLOWED_ORIGINS: str = ""
 
     @property
     def normalized_database_url(self) -> str:
@@ -90,9 +91,10 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> list[str]:
         """Return CORS origins parsed as a list of strings without trailing slashes."""
-        if not self.CORS_ORIGINS:
+        raw = self.ALLOWED_ORIGINS or self.CORS_ORIGINS or ""
+        if not raw:
             return ["http://localhost:3000", "http://127.0.0.1:3000"]
-        return [origin.strip().rstrip("/") for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        return [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]
 
     def mask_credential(self, val: str) -> str:
         """Safely mask a credential or secret string for logging (never printing raw secret)."""
