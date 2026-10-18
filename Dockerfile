@@ -50,4 +50,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
 # Production entrypoint with Gunicorn and Uvicorn workers
-CMD ["sh", "-c", "python database/init_db.py && gunicorn -w 2 -k uvicorn.workers.UvicornWorker backend.app.main:app -b 0.0.0.0:${PORT} --access-logfile - --error-logfile -"]
+CMD ["sh", "-c", "python database/init_db.py && gunicorn -w 2 -k uvicorn.workers.UvicornWorker backend.app.main:app -b 0.0.0.0:${PORT} --timeout 120 --access-logfile - --error-logfile -"]

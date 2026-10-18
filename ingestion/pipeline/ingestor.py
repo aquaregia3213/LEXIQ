@@ -97,10 +97,21 @@ def process_contract_ingestion(
         chunks = chunk_document_pages(parsed_data)
         embedding_service = get_embedding_service()
 
-        # 6. Save chunks to database with vector embeddings
+        # 6. Save chunks to database with vector embeddings (batched for high performance)
+        chunk_texts = [chk["text"] for chk in chunks]
+        batch_size = 20
+        all_embeddings = []
+        try:
+            for i in range(0, len(chunk_texts), batch_size):
+                batch_slice = chunk_texts[i:i + batch_size]
+                batch_vecs = embedding_service.embed_batch(batch_slice)
+                all_embeddings.extend(batch_vecs)
+        except Exception as batch_err:
+            logger.warning(f"Batch embedding failed ({batch_err}), falling back to individual embedding.")
+            all_embeddings = [embedding_service.embed_text(t) for t in chunk_texts]
+
         db_chunks = []
-        for chk in chunks:
-            text_vec = embedding_service.embed_text(chk["text"])
+        for chk, text_vec in zip(chunks, all_embeddings):
             chunk_rec = Chunk(
                 id=chk.get("chunk_id", str(uuid.uuid4())),
                 contract_id=contract.id,
