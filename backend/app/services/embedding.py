@@ -1,7 +1,8 @@
+from __future__ import annotations
 import math
 import hashlib
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional, Any, Dict
 
 DEFAULT_EMBEDDING_DIMENSION = 1536
 
